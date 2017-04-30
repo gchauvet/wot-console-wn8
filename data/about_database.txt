@@ -1,0 +1,36 @@
+Filename: sqlite.db
+Schema:
+'''
+CREATE TABLE IF NOT EXISTS tanks (
+    tank_id INTEGER,
+    account_id INTEGER,
+    last_battle_time INTEGER,
+    server TEXT,
+    battle_life_time INTEGER,
+    battles INTEGER,
+    capture_points INTEGER,
+    damage_assisted_radio INTEGER,
+    damage_assisted_track INTEGER,
+    damage_dealt INTEGER,
+    damage_received INTEGER,
+    direct_hits_received INTEGER,
+    dropped_capture_points INTEGER,
+    explosion_hits INTEGER,
+    explosion_hits_received INTEGER,
+    frags INTEGER,
+    hits INTEGER,
+    losses INTEGER,
+    mark_of_mastery INTEGER,
+    max_frags INTEGER,
+    max_xp INTEGER,
+    no_damage_direct_hits_received INTEGER,
+    piercings INTEGER,
+    piercings_received INTEGER,
+    shots INTEGER,
+    spotted INTEGER,
+    survived_battles INTEGER,
+    trees_cut INTEGER,
+    wins INTEGER,
+    xp INTEGER,
+    PRIMARY KEY (tank_id, account_id));
+'''
