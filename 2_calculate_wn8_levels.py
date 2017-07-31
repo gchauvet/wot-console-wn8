@@ -146,11 +146,11 @@ def get_exp_values(percentiles, data):
         if len(damage) >= 100:
             output[int(tank_id)] = {
                 'tank_id':    int(tank_id),
-                'expDamage':  round(float(np.percentile(damage,  percentiles['expDamage'])), 2),
-                'expDef':     round(float(np.percentile(defence, percentiles['expDef'])), 2),
-                'expFrag':    round(float(np.percentile(frag,    percentiles['expFrag'])), 2),
-                'expSpot':    round(float(np.percentile(spot,    percentiles['expSpot'])), 2),
-                'expWinRate': round(float(np.percentile(winrate, percentiles['expWinRate'])), 2)
+                'expDamage':  max(round(float(np.percentile(damage,  percentiles['expDamage'])), 2), 0.01),
+                'expDef':     max(round(float(np.percentile(defence, percentiles['expDef'])), 2), 0.01),
+                'expFrag':    max(round(float(np.percentile(frag,    percentiles['expFrag'])), 2), 0.01),
+                'expSpot':    max(round(float(np.percentile(spot,    percentiles['expSpot'])), 2), 0.01),
+                'expWinRate': max(round(float(np.percentile(winrate, percentiles['expWinRate'])), 2), 0.01)
             }
     return(output)
 
