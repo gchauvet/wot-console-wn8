@@ -1,6 +1,8 @@
-
 __pycache__/
-
-data/sqlite.db
-
-data/ps4.db
+.DS_Store
+pip-selfcheck.json
+pyvenv.cfg
+bin/
+lib/
+sqlite.db
+dataminer_config.json
