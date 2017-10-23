@@ -70,8 +70,6 @@ def calculate_for_tanks():
             db.update_percentiles(data, tank_id)
     db.conn.commit()
 
-    print('Done calculating percentiles.')
-
 
 def calculate_generic():
     #Calculating generic percentiles.
@@ -84,7 +82,6 @@ def calculate_generic():
             db.update_percentiles_generic(data, tank_tier, tank_type)
 
     db.conn.commit()
-    print('Done calculating generic percentiles.')
 
 
 def main():
