@@ -3,8 +3,9 @@ import time
 import json
 import requests
 
-import m_database as db
-from m_config import hosts
+
+import modules.database as db
+from secret import hosts
 
 
 #Send json-encoded payload in post body of the request.

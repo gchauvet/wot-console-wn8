@@ -2,6 +2,7 @@ import requests
 import json
 import time
 
+
 #Get full tankopedia.
 def get_tankopedia(app_id):
     #Returns: {tank_id:str{...tank_info...}}
@@ -25,6 +26,7 @@ def get_tankopedia(app_id):
             attempts += 1
 
     return data
+
 
 #Downloading account ids from WGAPI.
 def download_accounts(app_id):
@@ -86,6 +88,7 @@ def download_accounts(app_id):
                 time.sleep(0.1)
 
     return all_accounts
+
 
 #Get player data for one player.
 def get_player_data(account_id, server, app_id):

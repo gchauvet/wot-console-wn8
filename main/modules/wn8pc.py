@@ -1,6 +1,7 @@
 #This is WN8 v30.
 #Used as generic WN8.
 
+
 wn8pc = [
 	{"tier": 1, "type": "lightTank", "expFrag": 1.69, "expDamage": 223.29, "expSpot": 1.42, "expDef": 1.4, "expWinRate": 58.15},
 	{"tier": 2, "type": "lightTank", "expFrag": 1.4, "expDamage": 240.21, "expSpot": 1.63, "expDef": 1.51, "expWinRate": 58},

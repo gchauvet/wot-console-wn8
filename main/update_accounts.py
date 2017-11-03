@@ -1,8 +1,12 @@
 import time
 
-import m_wgapi as wgapi
-import m_database as db
-from m_config import app_id
+
+import modules.wgapi as wgapi
+import modules.database as db
+from secret import app_id
+
+
+# Reload player account ids and corresponding server names from WG 7 days rating.
 
 
 def refresh_accounts():

@@ -1,9 +1,9 @@
 import time
 import numpy as np
 
-import m_database as db
-from m_wn8pc import wn8pc
 
+import modules.database as db
+from modules.wn8pc import wn8pc
 
 
 def find_percentiles(pc_exp_values, data):
@@ -116,7 +116,7 @@ def calculate_wn8_for_tank(Dmg, Spot, Frag, Def, WinRate, Battles, exp_values):
 
     return WN8
 
-    
+
 def calculate_wn8_scores(data, pc_exp_values, exp_values):
     tank_id =                data['tank_id']
     battles =                data['battles']

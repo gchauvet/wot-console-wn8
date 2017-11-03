@@ -71,6 +71,7 @@ def put_tanks_into_tankopedia(tank_list):
 
     conn.commit()
 
+
 #Process player and insert tanks into "tanks" table.
 def insert_tank(tank_data):
     x = tank_data

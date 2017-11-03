@@ -1,7 +1,9 @@
-import m_wgapi as wgapi
-import m_database as db
-from m_config import app_id
+import modules.wgapi as wgapi
+import modules.database as db
+from secret import app_id
 
+
+# Update changed and add new tankopedia tanks.
 
 
 def main():
@@ -60,7 +62,6 @@ def main():
             'NAME:{}'.format(tank['name']),
             'PREMIUM:{}'.format(tank['is_premium'])
         ]))
-
 
 
 if __name__ == '__main__':

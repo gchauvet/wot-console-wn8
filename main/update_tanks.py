@@ -1,9 +1,12 @@
 import time
 import random
 
-import m_wgapi as wgapi
-import m_database as db
-from m_config import app_id
+import modules.wgapi as wgapi
+import modules.database as db
+from secret import app_id
+
+
+# Update tanks data.
 
 
 def main():
@@ -33,7 +36,7 @@ def main():
         #Getting random account.
         random_index = random.randint(0, max_index)
         account = accounts.pop(random_index)
-        max_index -= 1        
+        max_index -= 1
 
         #Requesting player_data.
         try:
