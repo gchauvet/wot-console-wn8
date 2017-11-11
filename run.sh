@@ -4,8 +4,6 @@ cd "${0%/*}"
 
 source ./bin/activate
 
-python3.6 main
+python3.6 run.py
 
 deactivate
-
-printf "Task complete.\n\n\n"

@@ -1,38 +1,37 @@
 import time
 
 
-import modules.wgapi as wgapi
-import modules.database as db
-from secret import app_id
+from . import wgapi
+from .database import t_accounts as db
 
 
-# Reload player account ids and corresponding server names from WG 7 days rating.
-
-
-def refresh_accounts():
-
-    accounts = wgapi.download_accounts(app_id)
-    db.remove_all_accounts()
-    db.insert_accounts(accounts)
-    print(f'Accounts refreshed. Total: {len(accounts)}')
+#Main routine to reload player account ids and corresponding server names from WG 7 days rating.
 
 
 def main():
 
     #Getting accounts counter.
-    accounts_num = db.count_accounts()
-    print(f'Found {accounts_num} accounts in the database.')
+    accounts_num = db.count()
+    print(f'INFO: Found {accounts_num} accounts in the database.')
+
 
     #Conditions for refresh.
     not_enough = accounts_num < 10_000
     sunday = time.gmtime().tm_wday == 6
 
+
     if not_enough or sunday:
+
         if not_enough:
-            print('Low count. Refreshing accounts...')
+            print('INFO: Low count. Refreshing accounts...')
         if sunday:
-            print('Its Sunday. Refreshing accounts...')
-        refresh_accounts()
+            print('INFO: Its Sunday. Refreshing accounts...')
+
+        accounts = wgapi.download_accounts()
+        db.remove_all()
+        db.put(accounts)
+
+        print(f'SUCCESS: Accounts refreshed. Total: {len(accounts)}')
 
 
 if __name__ == '__main__':

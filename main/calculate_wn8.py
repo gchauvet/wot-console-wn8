@@ -2,11 +2,16 @@ import time
 import numpy as np
 
 
-import modules.database as db
-from modules.wn8pc import wn8pc
+from .database.t_tankopedia import get_tankopedia
+from .database import t_wn8 as db
+from .wn8pc import wn8pc
+
+
+#Main routine to calculate WN8 expected values.
 
 
 def find_percentiles(pc_exp_values, data):
+    #Find percentiles for values that match pc_exp_values.
 
     tank_ids = list(set(data['tank_id']))
     percentiles = {'expDamage': 50, 'expDef': 50, 'expFrag': 50, 'expSpot': 50, 'expWinRate': 50}
@@ -48,7 +53,7 @@ def find_percentiles(pc_exp_values, data):
                 percentiles[stat_type] -= 1
                 previous_change[i] = '-'
 
-    return(percentiles)
+    return percentiles
 
 
 def get_exp_values(percentiles, data):
@@ -72,16 +77,18 @@ def get_exp_values(percentiles, data):
         if len(damage) >= 100:
             output[int(tank_id)] = {
                 'tank_id':    int(tank_id),
-                'expDamage':  max(round(float(np.percentile(damage,  percentiles['expDamage'])), 2), 0.01),
-                'expDef':     max(round(float(np.percentile(defence, percentiles['expDef'])), 2), 0.01),
-                'expFrag':    max(round(float(np.percentile(frag,    percentiles['expFrag'])), 2), 0.01),
-                'expSpot':    max(round(float(np.percentile(spot,    percentiles['expSpot'])), 2), 0.01),
+                'expDamage':  max(round(float(np.percentile(damage,  percentiles['expDamage'])),  2), 0.01),
+                'expDef':     max(round(float(np.percentile(defence, percentiles['expDef'])),     2), 0.01),
+                'expFrag':    max(round(float(np.percentile(frag,    percentiles['expFrag'])),    2), 0.01),
+                'expSpot':    max(round(float(np.percentile(spot,    percentiles['expSpot'])),    2), 0.01),
                 'expWinRate': max(round(float(np.percentile(winrate, percentiles['expWinRate'])), 2), 0.01)
             }
-    return(output)
+
+    return output
 
 
 def calculate_wn8_for_tank(Dmg, Spot, Frag, Def, WinRate, Battles, exp_values):
+    #Calculate WN8 for single tank with specified WN8 exp_values.
 
     #step 0 - assigning the variables
     expDmg      = exp_values['expDamage']
@@ -145,9 +152,7 @@ def calculate_wn8_scores(data, pc_exp_values, exp_values):
 
 def main():
 
-    print('Calculating WN8 exp values...')
-
-    tankopedia = db.get_tankopedia()
+    tankopedia = get_tankopedia()
 
     output, start_time = {}, time.time()
 
@@ -155,7 +160,7 @@ def main():
         for tank_tier in range(1, 11):
 
             pc_exp_values = [x for x in wn8pc if x['type'] == tank_type and x['tier'] == tank_tier][0]
-            data = db.get_wn8_arrays(tankopedia, tank_tier, tank_type)
+            data = db.get_data(tankopedia, tank_tier, tank_type)
 
             #Skip if less than 2 tanks in tier-class.
             if len(set(data['tank_id'])) < 2:
@@ -171,10 +176,10 @@ def main():
             pc_array, con_array = calculate_wn8_scores(data, pc_exp_values, exp_values)
             output.update(exp_values)
 
-    db.update_wn8_exp_values(output)
+    db.replace_all(output)
 
     took = int(time.time() - start_time)
-    print(f'Done. Took {took} s.')
+    print(f'SUCCESS: Calculated WN8. Took {took} s.')
 
 
 if __name__ == '__main__':

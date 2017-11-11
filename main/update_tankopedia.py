@@ -1,60 +1,54 @@
-import modules.wgapi as wgapi
-import modules.database as db
-from secret import app_id
+from . import wgapi
+from .database import t_tankopedia as db_tp
 
 
-# Update changed and add new tankopedia tanks.
+#Update changed and add new tankopedia tanks.
 
 
 def main():
 
-    print('Updating tankopedia...')
-
-    #Download tankopedia from WG.
-    new_tankopedia = wgapi.get_tankopedia(app_id)
+    #Get new and old tankopedias.
+    old_tankopedia = db_tp.get_tankopedia()
+    new_tankopedia = wgapi.get_tankopedia()
     if not new_tankopedia:
-        print('Couldnt download tankopedia.')
+        print('WARNING: Cant download tankopedia from WG.')
         return
 
 
-    #Get tankopedia from database.
-    old_tankopedia = db.get_tankopedia()
-
-
-    #Getting new ids that are not in the database.
+    #Extract keys, getting new and changed tank ids.
     new_keys, old_keys = set(new_tankopedia.keys()), set(old_tankopedia.keys())
-
-
-    #Getting ids for new and changed tanks.
-    new_tank_ids = list(new_keys - old_keys)
-    changed_tank_ids = []
-    for tank_id in old_keys:
-        if old_tankopedia.get(tank_id) != new_tankopedia.get(tank_id):
-            changed_tank_ids.append(tank_id)
-
-
-    #Adding tanks into a list.
     tanks_to_update = []
-    for tank_id in new_tank_ids + changed_tank_ids:
-        tank_dict = new_tankopedia.get(tank_id)
-        if tank_dict:
-            tanks_to_update.append(tank_dict)
+
+
+    #Adding new tanks.
+    for tank_id in new_keys - old_keys:
+        tank = new_tankopedia.get(tank_id)
+        if tank:
+            tanks_to_update.append(tank)
+
+
+    #Adding updated tanks.
+    for tank_id in old_keys:
+        old_tank = old_tankopedia.get(tank_id)
+        new_tank = new_tankopedia.get(tank_id)
+        if new_tank and old_tank != new_tank:
+            tanks_to_update.append(new_tank)
 
 
     #If empty.
     if not tanks_to_update:
-        print('Tankopedia updated: no changes.')
+        print('SUCCESS: Tankopedia updated: no changes.')
         return
 
 
     #Insert.
-    db.put_tanks_into_tankopedia(tanks_to_update)
+    db_tp.put(tanks_to_update)
 
 
     #Feedback.
-    print('Tankopedia updated:')
+    print(f'SUCCESS: Tankopedia updated: {len(tanks_to_update)} tanks.')
     for tank in tanks_to_update:
-        print(' '.join([
+        print('INFO:', ' '.join([
             'ID:{}'.format(tank['tank_id']),
             'TIER:{}'.format(tank['tier']),
             'TYPE:{}'.format(tank['type']),
