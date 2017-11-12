@@ -24,7 +24,7 @@ def main():
         'frags', 'hits', 'losses', 'piercings', 'piercings_received',
         'shots', 'spotted', 'survived_battles', 'wins', 'xp'
     ]
-    to_remove = columns[0:2]
+    cols_to_remove = columns[0:2]
     ratios = columns[2::]
 
 
@@ -46,33 +46,19 @@ def main():
         df['recency'] = int(time.time()) - df['last_battle_time']
         for col_name in ratios:
             df[col_name] = df[col_name] / df['battles']
-        for col_name in to_remove:
-            del df[col_name]
+        df.drop(columns=cols_to_remove, inplace=True)
         df = df.agg('median').round(2)
 
 
-        #Create a row.
-        rows.append({
-            'tank_id':               tank_id,
-            'created_at':            now,
-            'recency':               int(df['recency']),
-            'battle_life_time':      df['battle_life_time'],
-            'capture_points':        df['capture_points'],
-            'damage_assisted_radio': df['damage_assisted_radio'],
-            'damage_dealt':          df['damage_dealt'],
-            'damage_received':       df['damage_received'],
-            'direct_hits_received':  df['direct_hits_received'],
-            'frags':                 df['frags'],
-            'hits':                  df['hits'],
-            'losses':                df['losses'],
-            'piercings':             df['piercings'],
-            'piercings_received':    df['piercings_received'],
-            'shots':                 df['shots'],
-            'spotted':               df['spotted'],
-            'survived_battles':      df['survived_battles'],
-            'wins':                  df['wins'],
-            'xp':                    df['xp']
-        })
+        #Put everything into row.
+        row = {
+            'tank_id':    tank_id,
+            'created_at': now,
+            'recency':    int(df['recency'])
+        }
+        for col_name in ratios:
+            row[col_name] = df[col_name]
+        rows.append(row)
 
     db.put(rows)
 
