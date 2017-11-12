@@ -7,6 +7,15 @@ from .conn import conn, cur
 
 #Functions for tankopedia table.
 
+def get_tiertype_tankids(tank_tier, tank_type):
+    cur.execute('SELECT tank_id FROM tankopedia WHERE tier = ? AND type = ?;', (tank_tier,  tank_type))
+    return [x[0] for x in cur]
+
+
+def get_distinct_tankids():
+    cur.execute('SELECT DISTINCT(tank_id) FROM tankopedia;')
+    return [x[0] for x in cur]
+
 
 def get_tankopedia():
     #Get tankopedia as dictionary of dictionaries.

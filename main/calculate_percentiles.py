@@ -2,6 +2,8 @@ import time
 import numpy as np
 
 
+from .database.t_tankopedia import get_distinct_tankids, get_tiertype_tankids
+from .database.t_tanks import get_percentiles_data as get_data
 from .database import t_percentiles as db
 
 
@@ -65,40 +67,28 @@ def calculate_percentiles(headers, data):
     return output
 
 
-def calculate_for_tanks():
-    #Calculate percentiles for each tank_id.
+def main():
 
-    for tank_id in db.get_distinct_tankids():
-        data = calculate_percentiles(*db.get_data([tank_id]))
+    #Calculate percentiles for each tank_id.
+    start = time.time()
+    for tank_id in get_distinct_tankids():
+        data = calculate_percentiles(*get_data([tank_id]))
         if data:
             db.update_percentiles(data, tank_id)
     db.conn.commit()
+    print('SUCCESS: Percentiles calculated. Took {} s.'.format(int(time.time() - start)))
 
 
-def calculate_generic():
     #Calculate percentiles for every class-tier.
-
+    start = time.time()
     for tank_type in ['lightTank', 'mediumTank', 'heavyTank', 'AT-SPG', 'SPG']:
         for tank_tier in range(1, 11):
-            tank_ids = db.get_tiertype_tankids(tank_tier, tank_type)
-            data = calculate_percentiles(*db.get_data(tank_ids))
+            tank_ids = get_tiertype_tankids(tank_tier, tank_type)
+            data = calculate_percentiles(*get_data(tank_ids))
             #Data is None if not enough tanks.
             db.update_percentiles_generic(data, tank_tier, tank_type)
     db.conn.commit()
-
-
-def main():
-
-    start = time.time()
-    calculate_for_tanks()
-    took = int(time.time() - start)
-    print(f'SUCCESS: Percentiles calculated. Took {took} s.')
-
-
-    start = time.time()
-    calculate_generic()
-    took = int(time.time() - start)
-    print(f'SUCCESS: Generic percentiles calculated. Took {took} s.')
+    print('SUCCESS: Generic percentiles calculated. Took {} s.'.format(int(time.time() - start)))
 
 
 if __name__ == '__main__':

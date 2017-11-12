@@ -1,10 +1,74 @@
 import sqlite3
-
+import pandas as pd
 
 from .conn import conn, cur
 
 
 #Functions for tanks table.
+
+
+def get_percentiles_data(tank_ids):
+    columns = [
+        'battle_life_time', 'battles', 'capture_points', 'damage_assisted_radio',
+        'damage_assisted_track', 'damage_dealt', 'damage_received', 'direct_hits_received',
+        'dropped_capture_points', 'explosion_hits', 'explosion_hits_received', 'frags',
+        'hits', 'losses', 'mark_of_mastery', 'max_frags',
+        'max_xp', 'no_damage_direct_hits_received', 'piercings', 'piercings_received',
+        'shots', 'spotted', 'survived_battles', 'trees_cut',
+        'wins', 'xp'
+    ]
+
+    tank_ids_str = ', '.join([str(x) for x in tank_ids])
+    columns_str = ', '.join(columns)
+
+    data = cur.execute(f'''
+        SELECT {columns_str} FROM tanks WHERE tank_id IN ({tank_ids_str});
+    ''').fetchall()
+
+    return columns, data
+
+
+def get_wn8_data(tankopedia, tank_tier='all', tank_type='all'):
+    #Get dictionary of numpy arrays for WN8 calculation filtered by tier and type.
+
+    #Get tank ids.
+    tank_tiers = [tank_tier] if tank_tier != 'all' else list(range(1, 11))
+    tank_types = [tank_type] if tank_type != 'all' else ['lightTank', 'mediumTank', 'heavyTank', 'AT-SPG', 'SPG']
+    tank_ids = [key for key, val in tankopedia.items() if val['tier'] in tank_tiers and val['type'] in tank_types]
+
+    #Query into pandas dataframe.
+    columns_str = ', '.join(['tank_id', 'damage_dealt', 'spotted', 'frags', 'dropped_capture_points', 'wins', 'battles'])
+    tank_ids_str = ', '.join(tank_ids)
+    df = pd.read_sql(f'SELECT {columns_str} FROM tanks WHERE tank_id IN ({tank_ids_str});', conn)
+
+    #Calculations.
+    df['damage_dealt']           = df['damage_dealt']           / df['battles']
+    df['spotted']                = df['spotted']                / df['battles']
+    df['frags']                  = df['frags']                  / df['battles']
+    df['dropped_capture_points'] = df['dropped_capture_points'] / df['battles']
+    df['wins']                   = df['wins']                   / df['battles'] * 100
+
+    #Return as numpy arrays.
+    return({
+        'tank_id':                df['tank_id'].values,
+        'battles':                df['battles'].values,
+        'damage_dealt':           df['damage_dealt'].values,
+        'dropped_capture_points': df['dropped_capture_points'].values,
+        'frags':                  df['frags'].values,
+        'spotted':                df['spotted'].values,
+        'wins':                   df['wins'].values
+    })
+
+
+def get_dataframe(tank_ids, columns, min_battles=0):
+
+    tank_ids_str = ', '.join([str(x) for x in tank_ids])
+    columns_str = ', '.join(columns)
+
+    return pd.read_sql(f'''
+        SELECT {columns_str} FROM tanks
+        WHERE tank_id IN ({tank_ids_str}) AND battles >= {min_battles}
+    ''', conn)
 
 
 def insert_tank(tank_data):
@@ -65,9 +129,11 @@ def insert_tank(tank_data):
 def cleanup_space(tank_id, min_battles):
 
     #Getting count of tanks with battles less than minimum.
-    count = cur.execute('''
-        SELECT COUNT(*) FROM tanks WHERE tank_id = ? AND battles < ?;
-    ''', (tank_id, min_battles)).fetchone()[0]
+    cur.execute('''
+        SELECT COUNT(*) FROM tanks
+        WHERE tank_id = ? AND battles < ?;
+    ''', (tank_id, min_battles))
+    count = cur.fetchone()[0]
 
     if count > 0:
         #Deleting oldest 50 with battles less than minimum.
@@ -79,17 +145,16 @@ def cleanup_space(tank_id, min_battles):
                 ORDER BY last_battle_time ASC LIMIT 50
             );
         ''', (tank_id, tank_id, min_battles))
-        return
-
-    #Deleting oldest 10.
-    cur.execute('''
-        DELETE FROM tanks
-        WHERE tank_id = ? AND last_battle_time IN (
-            SELECT last_battle_time FROM tanks
-            WHERE tank_id = ?
-            ORDER BY last_battle_time ASC LIMIT 10
-        );
-    ''', (tank_id, tank_id))
+    else:
+        #Deleting oldest 10.
+        cur.execute('''
+            DELETE FROM tanks
+            WHERE tank_id = ? AND last_battle_time IN (
+                SELECT last_battle_time FROM tanks
+                WHERE tank_id = ?
+                ORDER BY last_battle_time ASC LIMIT 10
+            );
+        ''', (tank_id, tank_id))
 
 
 def insert_player(player_data, tankopedia):

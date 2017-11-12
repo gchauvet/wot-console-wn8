@@ -63,6 +63,10 @@ def post_data(url, payload):
 
 def main():
 
+    if not any(hosts):
+        print('WARNING: No hosts found. Data will not be sent anywhere.')
+
+
     for host in hosts:
 
         url, access_key = host['url'], host['access_key']

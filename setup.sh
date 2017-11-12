@@ -16,7 +16,7 @@ echo "#app_id to contact WG API services." > $DEST
 echo "app_id = 'demo'" >> $DEST
 echo "#List of hosts to push data to." >> $DEST
 echo "hosts = [" >> $DEST
-echo "    {'url': 'http://127.0.0.1:5000/update/', 'access_key': '12345'}" >> $DEST
+echo "    #{'url': 'http://127.0.0.1:5000/update/', 'access_key': '12345'}" >> $DEST
 echo "]" >> $DEST
 
 deactivate

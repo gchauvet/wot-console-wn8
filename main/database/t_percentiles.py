@@ -9,38 +9,6 @@ from .conn import conn, cur
 #Functions for percentiles, percentiles_generic tables.
 
 
-def get_tiertype_tankids(tank_tier, tank_type):
-    cur.execute('SELECT tank_id FROM tankopedia WHERE tier = ? AND type = ?;', (tank_tier,  tank_type))
-    return [x[0] for x in cur]
-
-
-def get_distinct_tankids():
-    cur.execute('SELECT DISTINCT(tank_id) FROM tankopedia;')
-    return [x[0] for x in cur]
-
-
-def get_data(tank_ids_list):
-    columns = [
-        'battle_life_time', 'battles', 'capture_points', 'damage_assisted_radio',
-        'damage_assisted_track', 'damage_dealt', 'damage_received', 'direct_hits_received',
-        'dropped_capture_points', 'explosion_hits', 'explosion_hits_received', 'frags',
-        'hits', 'losses', 'mark_of_mastery', 'max_frags',
-        'max_xp', 'no_damage_direct_hits_received', 'piercings', 'piercings_received',
-        'shots', 'spotted', 'survived_battles', 'trees_cut',
-        'wins', 'xp'
-    ]
-
-    tank_ids = [str(x) for x in tank_ids_list]
-    tank_ids_str = ', '.join(tank_ids)
-    columns_str = ', '.join(columns)
-
-    data = cur.execute(f'''
-        SELECT {columns_str} FROM tanks WHERE tank_id IN ({tank_ids_str});
-    ''').fetchall()
-
-    return columns, data
-
-
 def update_percentiles(data, tank_id):
     #Update percentiles for one tank - no commit.
 

@@ -2,6 +2,7 @@ import time
 import numpy as np
 
 
+from .database.t_tanks import get_wn8_data as get_data
 from .database.t_tankopedia import get_tankopedia
 from .database import t_wn8 as db
 from .wn8pc import wn8pc
@@ -160,7 +161,7 @@ def main():
         for tank_tier in range(1, 11):
 
             pc_exp_values = [x for x in wn8pc if x['type'] == tank_type and x['tier'] == tank_tier][0]
-            data = db.get_data(tankopedia, tank_tier, tank_type)
+            data = get_data(tankopedia, tank_tier, tank_type)
 
             #Skip if less than 2 tanks in tier-class.
             if len(set(data['tank_id'])) < 2:

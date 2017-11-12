@@ -18,6 +18,9 @@ def main():
     print('######## Calculating WN8...')
     calculate_wn8()
 
+    print('######## Calculating history...')
+    calculate_history()
+
     print('######## Pushing the data...')
     push_data()
 
