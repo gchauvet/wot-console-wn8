@@ -19,13 +19,14 @@ def main():
 
 
     #Loop variables.
-    end_time = time.time() + 60 * 30
+    end_time = time.time() + 60 * 60
+    max_counter = 5000
     counter, errors = 0, 0
     fetched_accounts = []
 
 
     #Iterating through random accounts.
-    while time.time() < end_time:
+    while time.time() < end_time and counter <= max_counter:
 
         #If no more accounts left.
         if not any(accounts):
