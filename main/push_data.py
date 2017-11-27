@@ -3,9 +3,12 @@ import time
 import json
 import requests
 
-import m_database as db
-from m_config import hosts
 
+from .database import export as db
+from .secret import hosts
+
+
+#Main routine to push data to remote hosts.
 
 #Send json-encoded payload in post body of the request.
 #Authorization via 'access_key' in the body.
@@ -25,30 +28,30 @@ def post_data(url, payload):
             assert status == 'ok', message
 
         except requests.exceptions.Timeout:
-            print('Error: request timeout')
+            print('ERROR: request timeout')
             attempts += 1
 
         except (requests.exceptions.InvalidSchema, requests.exceptions.ConnectionError):
-            print('Error: connection error, check supplied URL')
+            print('ERROR: connection error, check supplied URL')
             attempts += 1
 
         except json.decoder.JSONDecodeError:
-            print('Error: can\'t decode json')
+            print('ERROR: Cant decode json')
             attempts += 1
 
         except AssertionError as e:
-            print('Error:', e)
+            print('ERROR:', e)
             attempts += 1
 
         except KeyError:
-            print('Error: json response doesnt contain \'status\' or \'message\' keys')
+            print('ERROR: json response doesnt contain \'status\' or \'message\' keys')
             attempts += 1
 
         else:
             #Feedback.
             took = round(time.time() - start, 2)
             kib = round(sys.getsizeof(json.dumps(payload)) / 1024, 2)
-            print(f'Done. Took: {took} s. Size: {kib} KiB')
+            print(f'SUCCESS: Took: {took} s. Size: {kib} KiB')
             # took = round(time.time() - start, 2)
             # kib = round(sys.getsizeof(gzip.compress(json.dumps(payload).encode())) / 1024, 2)
             # print(f'Done. Took: {took} s. Size: {kib} KiB')
@@ -60,14 +63,18 @@ def post_data(url, payload):
 
 def main():
 
+    if not any(hosts):
+        print('WARNING: No hosts found. Data will not be sent anywhere.')
+
+
     for host in hosts:
 
         url, access_key = host['url'], host['access_key']
-        print(f'Sending data to {url}')
+        print(f'INFO: Sending data to {url}')
 
 
         #Tankopedia.
-        print('Pushing tankopedia...')
+        print('INFO: Pushing tankopedia...')
         data = db.export_tankopedia()
         payload = {
             'name':       'tankopedia',
@@ -84,7 +91,7 @@ def main():
 
 
         #Percentiles.
-        print('Pushing percentiles...')
+        print('INFO: Pushing percentiles...')
         data = db.export_percentiles()
         payload = {
             'name':       'percentiles',
@@ -96,7 +103,7 @@ def main():
 
 
         #Percentiles generic.
-        print('Pushing percentiles generic...')
+        print('INFO: Pushing percentiles generic...')
         data = db.export_percentiles_generic()
         payload = {
             'name':       'percentiles_generic',
@@ -108,7 +115,7 @@ def main():
 
 
         #WN8.
-        print('Pushing WN8...')
+        print('INFO: Pushing WN8...')
         data = db.export_wn8_exp_values()
         payload = {
             'name':       'wn8',

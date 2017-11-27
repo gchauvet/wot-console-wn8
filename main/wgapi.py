@@ -2,8 +2,12 @@ import requests
 import json
 import time
 
+
+from .secret import app_id
+
+
 #Get full tankopedia.
-def get_tankopedia(app_id):
+def get_tankopedia():
     #Returns: {tank_id:str{...tank_info...}}
 
     fields = '%2C+'.join(['name', 'short_name', 'nation', 'is_premium', 'tier', 'type', 'tank_id'])
@@ -18,7 +22,6 @@ def get_tankopedia(app_id):
             data = resp.get('data')
             assert status == 'ok'
             assert len(data) == count
-            print('Tankopedia downloaded from WG')
             break
         except (AssertionError, requests.exceptions.Timeout):
             data = None
@@ -26,10 +29,9 @@ def get_tankopedia(app_id):
 
     return data
 
-#Downloading account ids from WGAPI.
-def download_accounts(app_id):
 
-    print('Started downloading accounts.')
+#Downloading account ids from WGAPI.
+def download_accounts():
 
     #Assembling url. 7 days rating type.
     params = {
@@ -61,11 +63,11 @@ def download_accounts(app_id):
             assert len(data) == count
 
         except Exception as e:
-            print('Error:', e)
+            print('ERROR:', e)
             error_counter += 1
             #Stop if too many errors.
             if error_counter > 20:
-                print('Error: Stopped getting ids because of too many errors.')
+                print('ERROR: Stopped getting ids because of too many errors.')
                 break
 
         else:
@@ -73,11 +75,11 @@ def download_accounts(app_id):
             all_accounts += data
             #Feedback.
             if page_no % 20 == 0:
-                print(f'Downloaded {page_no}k ids')
+                print(f'INFO: Downloaded {page_no}k ids')
             #Last page must have less items than requested.
             if len(data) < 1000:
                 last_page = True
-                print('Finished downloading accounts.')
+                print('SUCCESS: Finished downloading accounts.')
                 break
 
         finally:
@@ -87,8 +89,9 @@ def download_accounts(app_id):
 
     return all_accounts
 
+
 #Get player data for one player.
-def get_player_data(account_id, server, app_id):
+def get_player_data(account_id, server):
 
     url = f'https://api-{server}-console.worldoftanks.com/wotx/tanks/stats/?application_id={app_id}&account_id={account_id}'
 

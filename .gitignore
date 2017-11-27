@@ -5,4 +5,4 @@ pyvenv.cfg
 bin/
 lib/
 sqlite.db
-dataminer_config.json
+main/secret.py

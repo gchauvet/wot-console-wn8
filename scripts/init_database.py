@@ -5,6 +5,7 @@ conn = sqlite3.connect('sqlite.db')
 cur = conn.cursor()
 
 
+#Main tanks storage.
 cur.execute('''
     CREATE TABLE IF NOT EXISTS tanks (
         tank_id INTEGER,
@@ -41,6 +42,7 @@ cur.execute('''
 );''')
 
 
+#Tankopedia.
 cur.execute('''
     CREATE TABLE IF NOT EXISTS tankopedia (
         tank_id INTEGER PRIMARY KEY,
@@ -54,6 +56,8 @@ cur.execute('''
 );''')
 
 
+#Percentiles.
+#data = python pickle object.
 cur.execute('''
     CREATE TABLE IF NOT EXISTS percentiles (
         tank_id INTEGER PRIMARY KEY,
@@ -62,6 +66,8 @@ cur.execute('''
 );''')
 
 
+#Generic percentiles.
+#data = python pickle object.
 cur.execute('''
     CREATE TABLE IF NOT EXISTS percentiles_generic (
         tier INTEGER,
@@ -72,6 +78,7 @@ cur.execute('''
 );''')
 
 
+#WN8 expected values.
 cur.execute('''
     CREATE TABLE IF NOT EXISTS wn8 (
         tank_id INTEGER PRIMARY KEY,
@@ -83,10 +90,38 @@ cur.execute('''
 );''')
 
 
+#Temporary account info storage.
 cur.execute('''
     CREATE TABLE IF NOT EXISTS accounts (
         account_id INTEGER,
         server TEXT
+);''')
+
+
+#Historical medians of the ratios: metric / battles.
+#recency: median of (int(time.time()) - last_battle_time)
+cur.execute('''
+    CREATE TABLE IF NOT EXISTS history (
+        tank_id INTEGER,
+        created_at INTEGER,
+        recency INTEGER,
+        battle_life_time REAL,
+        capture_points REAL,
+        damage_assisted_radio REAL,
+        damage_dealt REAL,
+        damage_received REAL,
+        direct_hits_received REAL,
+        frags REAL,
+        hits REAL,
+        losses REAL,
+        piercings REAL,
+        piercings_received REAL,
+        shots REAL,
+        spotted REAL,
+        survived_battles REAL,
+        wins REAL,
+        xp REAL,
+        PRIMARY KEY (tank_id, created_at)
 );''')
 
 

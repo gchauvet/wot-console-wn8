@@ -1,24 +1,54 @@
 import time
 import numpy as np
 
-import m_database as db
-from m_wn8pc import wn8pc
+
+from .database.t_tanks import get_dataframe
+from .database.t_tankopedia import get_tankopedia
+from .database import t_wn8 as db
+from .wn8pc import wn8pc
 
 
+#Main routine to calculate WN8 expected values.
 
-def find_percentiles(pc_exp_values, data):
+def calculate_exp_values(percentiles, df):
 
-    tank_ids = list(set(data['tank_id']))
+    output = {}
+
+    for tank_id in df['tank_id'].unique():
+
+        #Referencing a slice.
+        d = df[df['tank_id'] == tank_id]
+
+        #Need at least 100 rows for tank_id.
+        if d['tank_id'].count() < 100:
+            continue
+
+        output[int(tank_id)] = {
+            'tank_id':    int(tank_id),
+            'expDamage':  max(float(np.percentile(d['damage_dealt'],           percentiles['expDamage']).round(2)),  0.01),
+            'expDef':     max(float(np.percentile(d['dropped_capture_points'], percentiles['expDef']).round(2)),     0.01),
+            'expFrag':    max(float(np.percentile(d['frags'],                  percentiles['expFrag']).round(2)),    0.01),
+            'expSpot':    max(float(np.percentile(d['spotted'],                percentiles['expSpot']).round(2)),    0.01),
+            'expWinRate': max(float(np.percentile(d['wins'],                   percentiles['expWinRate']).round(2)), 0.01)
+        }
+
+    return output
+
+
+def find_percentiles(pc_exp_values, df):
+    #Find percentiles for values that match pc_exp_values.
+
+    tank_ids = df['tank_id'].unique().tolist()
     percentiles = {'expDamage': 50, 'expDef': 50, 'expFrag': 50, 'expSpot': 50, 'expWinRate': 50}
     previous_change = ['+' for i in range(5)]
     found = [False for i in range(5)]
 
-    while all(found) == False:
+    while not all(found):
+        exp_values = calculate_exp_values(percentiles, df)
 
-        exp_values = get_exp_values(percentiles, data)
-
-        if len(exp_values) == 0:
-            return(None)
+        #Not enough data for each tank_id in df.
+        if not any(exp_values):
+            return
 
         #Iterating through WN8 values.
         for i, stat_type in enumerate(['expDamage', 'expDef', 'expFrag', 'expSpot', 'expWinRate']):
@@ -26,13 +56,9 @@ def find_percentiles(pc_exp_values, data):
             if found[i] == True:
                 continue
 
-            #Getting the median.
+            #Getting the median of exp_values for stat_type.
             pc = pc_exp_values[stat_type]
-            con_array = []
-            for tank_id in tank_ids:
-                if exp_values.get(tank_id):
-                    con_array.append(exp_values[tank_id][stat_type])
-            con = round(np.median(con_array), 2)
+            con = np.median([x[stat_type] for x in exp_values.values()]).round(2)
 
             #Checking conditions.
             if pc == con:
@@ -48,40 +74,11 @@ def find_percentiles(pc_exp_values, data):
                 percentiles[stat_type] -= 1
                 previous_change[i] = '-'
 
-    return(percentiles)
-
-
-def get_exp_values(percentiles, data):
-
-    output = {}
-
-    for tank_id in set(data['tank_id']):
-
-        damage, defence, frag, spot, winrate = ([] for i in range(5))
-
-        for i in range(len(data['tank_id'])):
-
-            if tank_id == data['tank_id'][i]:
-                damage.append(data['damage_dealt'][i])
-                defence.append(data['dropped_capture_points'][i])
-                frag.append(data['frags'][i])
-                spot.append(data['spotted'][i])
-                winrate.append(data['wins'][i])
-
-        #At least 100 values.
-        if len(damage) >= 100:
-            output[int(tank_id)] = {
-                'tank_id':    int(tank_id),
-                'expDamage':  max(round(float(np.percentile(damage,  percentiles['expDamage'])), 2), 0.01),
-                'expDef':     max(round(float(np.percentile(defence, percentiles['expDef'])), 2), 0.01),
-                'expFrag':    max(round(float(np.percentile(frag,    percentiles['expFrag'])), 2), 0.01),
-                'expSpot':    max(round(float(np.percentile(spot,    percentiles['expSpot'])), 2), 0.01),
-                'expWinRate': max(round(float(np.percentile(winrate, percentiles['expWinRate'])), 2), 0.01)
-            }
-    return(output)
+    return percentiles
 
 
 def calculate_wn8_for_tank(Dmg, Spot, Frag, Def, WinRate, Battles, exp_values):
+    #Calculate WN8 for single tank with specified WN8 exp_values.
 
     #step 0 - assigning the variables
     expDmg      = exp_values['expDamage']
@@ -116,65 +113,49 @@ def calculate_wn8_for_tank(Dmg, Spot, Frag, Def, WinRate, Battles, exp_values):
 
     return WN8
 
-    
-def calculate_wn8_scores(data, pc_exp_values, exp_values):
-    tank_id =                data['tank_id']
-    battles =                data['battles']
-    damage_dealt =           data['damage_dealt']
-    dropped_capture_points = data['dropped_capture_points']
-    frags =                  data['frags']
-    spotted =                data['spotted']
-    wins =                   data['wins']
-
-    pc_output = []
-    con_output = []
-
-    for i in range(len(tank_id)):
-        if exp_values.get(tank_id[i]):
-
-            Dmg, Spot, Frag, Def, WinRate, Battles = damage_dealt[i], spotted[i], frags[i], dropped_capture_points[i], wins[i], battles[i]
-
-            pc_score = calculate_wn8_for_tank(Dmg, Spot, Frag, Def, WinRate, Battles, pc_exp_values)
-            con_score = calculate_wn8_for_tank(Dmg, Spot, Frag, Def, WinRate, Battles, exp_values[tank_id[i]])
-
-            pc_output.append(pc_score)
-            con_output.append(con_score)
-
-    return(pc_output, con_output)
-
 
 def main():
 
-    print('Calculating WN8 exp values...')
+    #Benchmarking.
+    start_time =  time.time()
 
-    tankopedia = db.get_tankopedia()
+    #Output: {"tank_id": {"expVal": float, ...}, ...}
+    output = {}
 
-    output, start_time = {}, time.time()
+    tankopedia = get_tankopedia()
+
+    columns = ['tank_id', 'damage_dealt', 'spotted', 'frags', 'dropped_capture_points', 'wins', 'battles']
 
     for tank_type in ['lightTank', 'mediumTank', 'heavyTank', 'AT-SPG', 'SPG']:
         for tank_tier in range(1, 11):
 
             pc_exp_values = [x for x in wn8pc if x['type'] == tank_type and x['tier'] == tank_tier][0]
-            data = db.get_wn8_arrays(tankopedia, tank_tier, tank_type)
+            tank_ids = [x['tank_id'] for x in tankopedia.values() if x['type'] == tank_type and x['tier'] == tank_tier]
+            df = get_dataframe(tank_ids, columns, min_battles=1)
 
-            #Skip if less than 2 tanks in tier-class.
-            if len(set(data['tank_id'])) < 2:
+            df['damage_dealt']           = df['damage_dealt']           / df['battles']
+            df['spotted']                = df['spotted']                / df['battles']
+            df['frags']                  = df['frags']                  / df['battles']
+            df['dropped_capture_points'] = df['dropped_capture_points'] / df['battles']
+            df['wins']                   = df['wins']                   / df['battles'] * 100
+
+            #Skip if 0 or 1 tank in tier-class. Use generic value instead.
+            if df['tank_id'].nunique() <= 1:
                 continue
 
-            percentiles = find_percentiles(pc_exp_values, data)
+            percentiles = find_percentiles(pc_exp_values, df)
 
             #Not enough values for any of the tanks.
-            if percentiles is None:
+            if not percentiles:
                 continue
 
-            exp_values = get_exp_values(percentiles, data)
-            pc_array, con_array = calculate_wn8_scores(data, pc_exp_values, exp_values)
+            exp_values = calculate_exp_values(percentiles, df)
             output.update(exp_values)
 
-    db.update_wn8_exp_values(output)
+    db.replace_all(output)
 
     took = int(time.time() - start_time)
-    print(f'Done. Took {took} s.')
+    print(f'SUCCESS: Calculated WN8. Took {took} s.')
 
 
 if __name__ == '__main__':
