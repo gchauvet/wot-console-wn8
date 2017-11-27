@@ -8,8 +8,8 @@ With PC community moving towards WN8 v30 expected values, the task of generating
 From OCT 2017 merged with `wot-console-dataminer` for additional features.
 * Fail-proof tankopedia updates.
 * WoT Console player data collection (both xbox & ps4).
-* Calculate percentiles & generic percentiles calculation.
-* WN8 Console expected values calculation.
+* Percentiles & generic percentiles calculation.
+* WN8 Console-specific expected values calculation (based on WN8 PC v30).
 
 
 #### Data collection methodology:
@@ -21,7 +21,7 @@ From OCT 2017 merged with `wot-console-dataminer` for additional features.
 
 
 #### How to run:
-The whole repository meant to be run as a daily cron job.
+The whole repository meant to be run as a cron job once a day, although manual use is also okay.
 * python3.6, pip3 and unix shell required.
 * `setup.sh` to setup including setting up venv.
 * `run.sh` to run from created venv.
