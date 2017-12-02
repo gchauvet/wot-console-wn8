@@ -1,6 +1,4 @@
 import sqlite3
-import pickle
-import time
 
 
 from .conn import conn, cur
@@ -12,7 +10,7 @@ from .conn import conn, cur
 def put(list_of_dicts):
 
     columns = [
-        'tank_id', 'created_at', 'recency',
+        'tank_id', 'created_at', 'popularity_index',
         'battle_life_time', 'capture_points', 'damage_assisted_radio',
         'damage_dealt', 'damage_received', 'direct_hits_received',
         'frags', 'hits', 'losses', 'piercings', 'piercings_received',

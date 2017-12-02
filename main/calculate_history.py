@@ -1,5 +1,5 @@
 import time
-import numpy
+import numpy as np
 
 
 from .database.t_tankopedia import get_tankopedia
@@ -13,7 +13,7 @@ from .database import t_history as db
 def main():
 
     #Current timestamp.
-    now = int(time.time())
+    start_time = int(time.time())
 
 
     #Define columns needed.
@@ -24,8 +24,10 @@ def main():
         'frags', 'hits', 'losses', 'piercings', 'piercings_received',
         'shots', 'spotted', 'survived_battles', 'wins', 'xp'
     ]
-    cols_to_remove = columns[0:2]
-    ratios = columns[2::]
+
+
+    #Items that need to be divided by battles.
+    ratio_names = columns[2::]
 
 
     #Iterate though every tank.
@@ -36,31 +38,57 @@ def main():
         min_battles = tier * 10 + tier * 10 / 2
         df = get_dataframe(tank_ids=[tank_id], columns=columns, min_battles=min_battles)
 
-
-        #Skip if not enough tanks.
-        if len(df) < 1000:
+        #Skip if too little tanks.
+        if len(df) < 100:
             continue
 
-
         #Calculations.
-        df['recency'] = int(time.time()) - df['last_battle_time']
-        for col_name in ratios:
-            df[col_name] = df[col_name] / df['battles']
-        df.drop(columns=cols_to_remove, inplace=True)
+        df['last_battle_time'] = time.time() - df['last_battle_time']
+        for name in ratio_names:
+            df[name] = df[name] / df['battles']
+        df.drop(columns=['battles'], inplace=True)
         df = df.agg('median').round(2)
-
 
         #Put everything into row.
         row = {
-            'tank_id':    tank_id,
-            'created_at': now,
-            'recency':    int(df['recency'])
+            'tank_id':          tank_id,
+            'created_at':       start_time,
+            'last_battle_time': df['last_battle_time']
         }
-        for col_name in ratios:
-            row[col_name] = df[col_name]
+        for name in ratio_names:
+            row[name] = df[name]
         rows.append(row)
 
+
+    #Generating 'popularity_index' & updating rows.
+    recency_arr = [x['last_battle_time'] for x in rows]
+    percentiles = np.percentile(recency_arr, [x / 10 for x in range(0, 1001)])
+    for row in rows:
+        value = row['last_battle_time']
+        for index, perc in enumerate(percentiles):
+
+            #Skip if value is bigger than current percentile value.
+            if value > perc and index < 1000:
+                continue
+
+            #Previous or current index.
+            x = index - 1 if value < perc and index > 0 else index
+
+            #Divide by 10 to get percent with two decimals. + Invert
+            x = abs(100 - x / 10)
+
+            #Add inverted value. (bigger = more popular)
+            row.update({'popularity_index': round(x, 2)})
+            break
+
+
+    #Insert.
     db.put(rows)
+
+
+    #Feedback.
+    took_time = time.time() - start_time
+    print(f'SUCCESS: History updated. Took: {took_time:.02f} s.')
 
 
 if __name__ == '__main__':

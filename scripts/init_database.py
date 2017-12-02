@@ -99,12 +99,12 @@ cur.execute('''
 
 
 #Historical medians of the ratios: metric / battles.
-#recency: median of (int(time.time()) - last_battle_time)
+#popularity_index is percentile of how popular the vehicle is.
 cur.execute('''
     CREATE TABLE IF NOT EXISTS history (
         tank_id INTEGER,
         created_at INTEGER,
-        recency INTEGER,
+        popularity_index REAL,
         battle_life_time REAL,
         capture_points REAL,
         damage_assisted_radio REAL,
