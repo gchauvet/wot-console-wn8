@@ -13,15 +13,19 @@ From OCT 2017 merged with `wot-console-dataminer` for additional features.
 
 
 #### Data collection methodology:
-* First 1000 tanks for each tank id stored in the database without any checks.
-* After first 1000 the tank needs to have `tier * 10 + tier * 10 / 2` battles to be added in the database.
-* If there are at least 1100 tanks for the tank id:
-  * Deleting up to 50 items (if available) with less than `tier * 10 + tier * 10 / 2` number of battles starting with the ones with oldest `last battle time` timestamp.
+* First 1000 tanks for each tank_id are collected without any checks. 
+* Set minumum number of battles as `tier * 10 + tier * 10 / 2` for each tank_id with more than 1000 tanks in the database.
+* If the number of tanks with the same tank_id hit 1100:
+  * Deleting up to 50 tanks with less than `tier * 10 + tier * 10 / 2` battles starting with oldest `last battle time` timestamp.
   * Or deleting 10 items with oldest `last battle time` timestamp.
 
 
-#### How to run:
+#### How to run on Linux/Mac:
 The whole repository meant to be run as a cron job once a day, although manual use is also okay.
-* python3.6, pip3 and unix shell required.
-* `setup.sh` to setup including setting up venv.
-* `run.sh` to run from created venv.
+* install python3.6
+* setup `setup.sh`
+  * python virtual environment setup.
+  * creating `main/secret.py` with hosts which should be updated.
+  * initializing SQLite databese inside project directory.
+* run `run.sh`
+  * switch to venv and run `run.py`
