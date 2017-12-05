@@ -25,7 +25,7 @@ The whole repository meant to be run as a cron job once a day, although manual u
 * install python3.6
 * setup `setup.sh`
   * python virtual environment setup.
-  * creating `main/secret.py` with hosts which should be updated.
+  * creating `main/secret.py` with WG app_id & hosts which should receive the data.
   * initializing SQLite databese inside project directory.
 * run `run.sh`
   * switch to venv and run `run.py`

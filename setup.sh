@@ -19,6 +19,7 @@ if [ ! -f $DEST ]; then
   echo "hosts = [" >> $DEST
   echo "    #{'url': 'http://127.0.0.1:5000/update/', 'access_key': '12345'}" >> $DEST
   echo "]" >> $DEST
+  echo "#Look inside 'main/push_data.py' to see how the data is pushed."
 fi
 
 deactivate
